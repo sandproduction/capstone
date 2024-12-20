@@ -306,6 +306,7 @@ st.markdown("---")
 with st.form("Single Predict"):
     st.markdown('<h3 class="centered-label">Masukkan Kalimat</h3>', unsafe_allow_html=True)
     comment = st.text_input("", key="single_predict")
+    st.markdown('<p style="text-align:center"> kalimatnya jangan panjang-panjang ya maksimal 26 kata, dan juga model ini bisa menggunakan bahasa inggris tapi lebih bagus jika memakai bahasa indonesia karena model ini dilatih menggunakan bahasa indonesia</p>',unsafe_allow_html=True)
     state = st.form_submit_button("Predict")
     translator = GoogleTranslator(source='en', target='id')
 
@@ -329,6 +330,7 @@ with st.form("Link Predict"):
     # df = pd.DataFrame(data)
     st.markdown('<h3 class="centered-label">Masukkan Link Video Youtube</h3>', unsafe_allow_html=True)
     link = st.text_input("", key="link_predict")
+    st.markdown('<p style="text-align:center">masukkan link dengan format "https://www.youtube.com/watch?v=VIDEO_ID"</p>', unsafe_allow_html=True)
     state_link = st.form_submit_button("Predict")
     translator = GoogleTranslator(source='en', target='id')
 
@@ -338,7 +340,7 @@ with st.form("Link Predict"):
             label_mapping = {0: "non-bullying", 1: "bullying"}
             df=get_comments(link)
 
-            df['comment'] = df['comment'].fillna("").apply(lambda row: translator.translate(row) if isinstance(row, str) else row)
+            df['comment'] = df['comment'].apply(lambda row: translator.translate(row) if isinstance(row, str) else row)
 
             data_jadi=process_data_comments(df)
             # st.dataframe(data)
@@ -456,8 +458,9 @@ with st.form("Link Predict"):
             # --------------------- WORDCLOUD ------------------------------
 
             # Menggabungkan komentar dengan default "none" jika kosong
-            bullying_comments = ' '.join(df[df['hasil'] == 'bullying']['comment']) or 'none'
-            non_bullying_comments = ' '.join(df[df['hasil'] == 'non-bullying']['comment']) or 'none'
+            bullying_comments = ' '.join(df[df['hasil'] == 'bullying']['comment'].fillna('')) or 'none'
+            non_bullying_comments = ' '.join(df[df['hasil'] == 'non-bullying']['comment'].fillna('')) or 'none'
+
 
             # Membuat Word Cloud
             bullying_wordcloud = WordCloud(width=800, height=400, background_color='black').generate(bullying_comments)
