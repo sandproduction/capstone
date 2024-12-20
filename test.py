@@ -16,6 +16,8 @@ from nltk.tokenize import word_tokenize
 from googleapiclient.discovery import build
 from deep_translator import GoogleTranslator
 
+from pytube import YouTube
+
 # ================== PREDICT SINGLE KOMEN ======================
 factory = StemmerFactory()
 stemmer = factory.create_stemmer()
@@ -255,14 +257,22 @@ def process_data_comments(df):
 
     # Preprocessing setiap komentar
     processed = df['comment'].apply(text_proses).tolist()
+    df_clean = df
+    df_clean['processed_text'] = processed
 
     # Batch input 2D (batch_size, sequence)
     batch_input = np.array(processed, dtype=object)
     vectorized_batch = loaded_text_vectorization(batch_input)
     vectorized_list = vectorized_batch.numpy().tolist()
 
-    return vectorized_list
+    return [vectorized_list, df_clean]
 
+def is_valid_youtube_url(url):
+    youtube_regex = (
+        r"(https?://)?(www\.)?"
+        r"(youtube\.com|youtu\.?be)/.+$"
+    )
+    return re.match(youtube_regex, url) is not None
 
 # ====================== TAMPILAN =============================
 
@@ -323,7 +333,7 @@ with st.form("Link Predict"):
 
     # Jika tombol ditekan dan input tidak kosong
     if state_link:
-        if link != '':
+        if link != '' and is_valid_youtube_url(link):
             label_mapping = {0: "non-bullying", 1: "bullying"}
             df=get_comments(link)
 
@@ -334,7 +344,8 @@ with st.form("Link Predict"):
 
             data_jadi=process_data_comments(df)
             # st.dataframe(data)
-            result=predict(data_jadi)
+            result=predict(data_jadi[0])
+            data_view = data_jadi[1]
 
             predictions = result.json()['predictions'][0]['values']
 
@@ -346,7 +357,9 @@ with st.form("Link Predict"):
             
             st.markdown("<h2 style='text-align:center;background-color:#053d99;border-radius:20px;'>Hasil Predict</h2>",unsafe_allow_html=True)
             st.markdown('---')    
-            st.dataframe(df)
+            link_yt_clean = link.split('&')[0]
+            st.video(link_yt_clean)
+            st.dataframe(data_view[['processed_text', 'hasil']])
 
             # ------------------------------ PRESENTASE --------------------------------
 
