@@ -12,7 +12,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
 from googleapiclient.discovery import build
-from googletrans import Translator
 
 # ================== PREDICT SINGLE KOMEN ======================
 factory = StemmerFactory()
@@ -251,15 +250,16 @@ def process_data_comments(df):
     loaded_model = tf.keras.models.load_model("vektorisasi_test_fix.keras")
     loaded_text_vectorization = loaded_model.layers[0]
 
-    processed_comments = []
-    for comment in df['comment']:
-        processed = text_proses(comment)  # Preprocessing setiap komentar
-        processed_comments.append(processed)
-    
-    batch_input = np.array(processed_comments)  # Batch input 2D (batch_size, sequence)
+    # Preprocessing setiap komentar
+    processed = df['comment'].apply(text_proses).tolist()
+
+    # Batch input 2D (batch_size, sequence)
+    batch_input = np.array(processed, dtype=object)
     vectorized_batch = loaded_text_vectorization(batch_input)
     vectorized_list = vectorized_batch.numpy().tolist()
+
     return vectorized_list
+
 
 # ====================== TAMPILAN =============================
 
@@ -293,15 +293,12 @@ with st.form("Single Predict"):
     st.markdown('<h3 class="centered-label">Masukkan Kalimat</h3>', unsafe_allow_html=True)
     comment = st.text_input("", key="single_predict")
     state = st.form_submit_button("Predict")
-    translator = Translator()
 
     # Jika tombol ditekan dan input tidak kosong
     if state:
         if comment != '':
-            comment_translate = translator.translate(comment, src='en', dest='id')
-            commentFix = comment_translate.text
-            st.write(commentFix)
-            processed_text=text_preprocessing(commentFix) 
+            st.write(comment)
+            processed_text=text_preprocessing(comment) 
             # st.write(processed_text)
             predict_text = predict(processed_text)
             print_result(predict_text)
@@ -322,11 +319,6 @@ with st.form("Link Predict"):
         if link != '':
             label_mapping = {0: "non-bullying", 1: "bullying"}
             df=get_comments(link)
-
-            for i in range (len(df)):
-                row=df['comment'].iloc[i]
-                trans = translator.translate(row, src='en', dest='id')
-                df["comment"].iloc[i] = trans.text
 
             data_jadi=process_data_comments(df)
             # st.dataframe(data)
@@ -351,8 +343,17 @@ with st.form("Link Predict"):
             persentase_df.columns = ['kategori', 'proportion']
 
             # Menampilkan hasil di Streamlit
-            bullying_percentage = persentase_df[persentase_df['kategori'] == 'bullying']['proportion'].values[0]
-            non_bullying_percentage = persentase_df[persentase_df['kategori'] == 'non-bullying']['proportion'].values[0]
+            bullying_percentage = (
+                persentase_df[persentase_df['kategori'] == 'bullying']['proportion'].values[0]
+                if not persentase_df[persentase_df['kategori'] == 'bullying'].empty
+                else 0
+            )
+
+            non_bullying_percentage = (
+                persentase_df[persentase_df['kategori'] == 'non-bullying']['proportion'].values[0]
+                if not persentase_df[persentase_df['kategori'] == 'non-bullying'].empty
+                else 0
+            )
 
             st.markdown(f"""
                 <style>
@@ -431,8 +432,9 @@ with st.form("Link Predict"):
 
             # --------------------- WORDCLOUD ------------------------------
 
-            bullying_comments = ' '.join(df[df['hasil'] == 'bullying']['comment'])
-            non_bullying_comments = ' '.join(df[df['hasil'] == 'non-bullying']['comment'])
+            # Menggabungkan komentar dengan default "none" jika kosong
+            bullying_comments = ' '.join(df[df['hasil'] == 'bullying']['comment']) or 'none'
+            non_bullying_comments = ' '.join(df[df['hasil'] == 'non-bullying']['comment']) or 'none'
 
             # Membuat Word Cloud
             bullying_wordcloud = WordCloud(width=800, height=400, background_color='black').generate(bullying_comments)
