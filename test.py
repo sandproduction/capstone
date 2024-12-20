@@ -5,7 +5,9 @@ import tensorflow as tf
 import seaborn as sns
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
-
+import nltk
+nltk.download('stopwords')
+nltk.download('punkt')
 import re
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from nltk.corpus import stopwords
