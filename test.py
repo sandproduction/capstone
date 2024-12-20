@@ -25,7 +25,8 @@ stpwds_id = list(set(stopwords.words('indonesian')))
 stpwds_id.append('oh')
 
 def text_proses(teks):
-    teks = teks.lower()
+    if teks is None or not isinstance(teks, str):  # Periksa jika teks None atau bukan string
+        teks = ""  # Berikan nilai default berupa string kosong
     teks = re.sub("@[A-Za-z0-9_]+"," ", teks)  # Menghilangkan mention
     teks = re.sub("#[A-Za-z0-9_]+"," ", teks)  # Menghilangkan hashtag
     teks = re.sub(r"\\n"," ",teks)             # Menghilangkan \n
@@ -337,10 +338,7 @@ with st.form("Link Predict"):
             label_mapping = {0: "non-bullying", 1: "bullying"}
             df=get_comments(link)
 
-            for i in range (len(df)):
-                row=df['comment'].iloc[i]
-                trans = translator.translate(row)
-                df["comment"].iloc[i] = trans
+            df['comment'] = df['comment'].fillna("").apply(lambda row: translator.translate(row) if isinstance(row, str) else row)
 
             data_jadi=process_data_comments(df)
             # st.dataframe(data)
