@@ -12,6 +12,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
 from googleapiclient.discovery import build
+from deep_translator import GoogleTranslator
 
 # ================== PREDICT SINGLE KOMEN ======================
 factory = StemmerFactory()
@@ -293,12 +294,15 @@ with st.form("Single Predict"):
     st.markdown('<h3 class="centered-label">Masukkan Kalimat</h3>', unsafe_allow_html=True)
     comment = st.text_input("", key="single_predict")
     state = st.form_submit_button("Predict")
+    translator = GoogleTranslator(source='en', target='id')
 
     # Jika tombol ditekan dan input tidak kosong
     if state:
         if comment != '':
-            st.write(comment)
-            processed_text=text_preprocessing(comment) 
+            comment_translate = translator.translate(comment)
+            commentFix = comment_translate
+            st.write(commentFix)
+            processed_text=text_preprocessing(commentFix) 
             # st.write(processed_text)
             predict_text = predict(processed_text)
             print_result(predict_text)
@@ -313,12 +317,18 @@ with st.form("Link Predict"):
     st.markdown('<h3 class="centered-label">Masukkan Link Video Youtube</h3>', unsafe_allow_html=True)
     link = st.text_input("", key="link_predict")
     state_link = st.form_submit_button("Predict")
+    translator = GoogleTranslator(source='en', target='id')
 
     # Jika tombol ditekan dan input tidak kosong
     if state_link:
         if link != '':
             label_mapping = {0: "non-bullying", 1: "bullying"}
             df=get_comments(link)
+
+            for i in range (len(df)):
+                row=df['comment'].iloc[i]
+                trans = translator.translate(row)
+                df["comment"].iloc[i] = trans
 
             data_jadi=process_data_comments(df)
             # st.dataframe(data)
@@ -342,7 +352,7 @@ with st.form("Link Predict"):
             persentase_df = persentase.reset_index()
             persentase_df.columns = ['kategori', 'proportion']
 
-            # Menampilkan hasil di Streamlit
+             # Menampilkan hasil di Streamlit
             bullying_percentage = (
                 persentase_df[persentase_df['kategori'] == 'bullying']['proportion'].values[0]
                 if not persentase_df[persentase_df['kategori'] == 'bullying'].empty
