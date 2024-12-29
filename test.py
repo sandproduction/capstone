@@ -63,7 +63,7 @@ def predict(processed_text):
 
     # Kirim request ke endpoint IBM Watson ML
     response_scoring = requests.post(
-        '',
+        'https://us-south.ml.cloud.ibm.com/ml/v4/deployments/modeltest/predictions?version=2021-05-01',
         json=payload_scoring,
         headers={'Authorization': 'Bearer ' + mltoken}
     )
