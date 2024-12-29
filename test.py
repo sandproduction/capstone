@@ -43,7 +43,7 @@ def text_proses(teks):
 def predict(processed_text):
     import requests
 
-    API_KEY = ""
+    API_KEY = "JppOLnuNp1U_Kb-BhfLrxYXtXUCEurw0iF-EnSJ4_MQt"
     token_response = requests.post('https://iam.cloud.ibm.com/identity/token',data={"apikey":API_KEY, "grant_type": 'urn:ibm:params:oauth:grant-type:apikey'})
     mltoken = token_response.json()["access_token"]
 
