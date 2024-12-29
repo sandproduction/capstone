@@ -43,7 +43,7 @@ def text_proses(teks):
 def predict(processed_text):
     import requests
 
-    API_KEY = "JppOLnuNp1U_Kb-BhfLrxYXtXUCEurw0iF-EnSJ4_MQt"
+    API_KEY = ""
     token_response = requests.post('https://iam.cloud.ibm.com/identity/token',data={"apikey":API_KEY, "grant_type": 'urn:ibm:params:oauth:grant-type:apikey'})
     mltoken = token_response.json()["access_token"]
 
@@ -63,7 +63,7 @@ def predict(processed_text):
 
     # Kirim request ke endpoint IBM Watson ML
     response_scoring = requests.post(
-        'https://us-south.ml.cloud.ibm.com/ml/v4/deployments/modeltest/predictions?version=2021-05-01',
+        '',
         json=payload_scoring,
         headers={'Authorization': 'Bearer ' + mltoken}
     )
